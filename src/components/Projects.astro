@@ -1,0 +1,109 @@
+---
+// ============================================================
+// Projects — 프로젝트 섹션 (CV의 핵심)
+// ============================================================
+// src/data/projects.ts의 projects 배열을 카드 그리드로 그립니다.
+// 카드 내부: 제목·기간 → 요약 → 문제/해결/결과(색으로 구분) → 기술 칩 → 링크.
+// featured: true인 프로젝트는 md 이상 화면에서 2칸을 차지해 강조됩니다.
+// image에 파일명을 넣으면(public/projects/) 카드 상단에 스크린샷 표시.
+
+import Section from "./Section.astro"; // 공통 섹션 틀
+import { t, type Lang } from "../i18n/ui"; // 제목·라벨 문구 조회
+import { projects } from "../data/projects"; // 프로젝트 데이터
+import { withBase } from "../utils/url"; // 스크린샷 경로 보정
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+---
+
+<Section id="projects" eyebrow={t(lang, "section.projects.eyebrow")} title={t(lang, "section.projects.title")} alt>
+  <!-- md 이상에서 2열 그리드 -->
+  <div class="grid gap-6 md:grid-cols-2">
+    {
+      /* 프로젝트 하나당 <article> 카드 하나 */
+      projects.map((p) => (
+        <article
+          class:list={[
+            "flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:shadow-lg dark:border-slate-800 dark:bg-slate-900",
+            /* featured면 md:col-span-2 추가 → 2열을 통째로 차지해 대표작 강조 */
+            p.featured && "md:col-span-2",
+          ]}
+        >
+          {/* 스크린샷: image가 빈 문자열이 아니면만 렌더링.
+              object-cover = 비율 유지하며 h-52 영역을 꽉 채우고 넘치는 부분은 자름 */}
+          {p.image && (
+            <img
+              src={withBase(p.image)}
+              alt={p.title[lang]}
+              class="h-52 w-full object-cover"
+            />
+          )}
+          {/* flex-1: 이미지 유무와 무관하게 본문이 카드 나머지 높이를 채움 → 카드 높이 정렬 */}
+          <div class="flex flex-1 flex-col p-6">
+            {/* 제목(왼쪽) + 기간(오른쪽) */}
+            <div class="flex flex-wrap items-baseline justify-between gap-2">
+              <h3 class="text-xl font-bold text-slate-900 dark:text-white">{p.title[lang]}</h3>
+              <span class="text-sm font-medium text-slate-500 dark:text-slate-400">{p.period}</span>
+            </div>
+            {/* 한 줄 요약 */}
+            <p class="mt-2 text-slate-600 dark:text-slate-300">{p.summary[lang]}</p>
+
+            {/* <dl>(설명 목록): <dt>=용어, <dd>=설명. "문제/해결/결과" 라벨-내용 쌍에 의미적으로 딱 맞는 태그 */}
+            <dl class="mt-4 space-y-2 text-sm">
+              <div class="flex gap-2">
+                {/* 문제=빨강 계열: "이슈"라는 직관. shrink-0: 라벨이 줄어들지 않게 */}
+                <dt class="shrink-0 font-semibold text-rose-600 dark:text-rose-400">{t(lang, "projects.problem")}</dt>
+                <dd class="text-slate-600 dark:text-slate-300">{p.problem[lang]}</dd>
+              </div>
+              <div class="flex gap-2">
+                {/* 해결=주황: 진행 중의 노력 */}
+                <dt class="shrink-0 font-semibold text-amber-600 dark:text-amber-400">{t(lang, "projects.solution")}</dt>
+                <dd class="text-slate-600 dark:text-slate-300">{p.solution[lang]}</dd>
+              </div>
+              <div class="flex gap-2">
+                {/* 결과=초록: 성공·완료 */}
+                <dt class="shrink-0 font-semibold text-emerald-600 dark:text-emerald-400">{t(lang, "projects.result")}</dt>
+                <dd class="text-slate-600 dark:text-slate-300">{p.result[lang]}</dd>
+              </div>
+            </dl>
+
+            {/* 사용 기술 칩 (민트) */}
+            <ul class="mt-4 flex flex-wrap gap-2">
+              {p.tech.map((tech) => (
+                <li class="rounded-md bg-mint-50 px-2.5 py-1 text-xs font-medium text-mint-800 dark:bg-mint-400/10 dark:text-mint-300">
+                  {tech}
+                </li>
+              ))}
+            </ul>
+
+            {/* 외부 링크들 — 주소가 비어 있으면 해당 링크 자체가 렌더링되지 않음 */}
+            <div class="mt-5 flex gap-3 pt-1">
+              {p.github && (
+                <a
+                  href={p.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-sm font-semibold text-slate-700 underline-offset-4 hover:text-mint-700 hover:underline dark:text-slate-200 dark:hover:text-mint-400"
+                >
+                  {t(lang, "projects.viewCode")} →
+                </a>
+              )}
+              {p.demo && (
+                <a
+                  href={p.demo}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-sm font-semibold text-slate-700 underline-offset-4 hover:text-mint-700 hover:underline dark:text-slate-200 dark:hover:text-mint-400"
+                >
+                  {t(lang, "projects.viewDemo")} →
+                </a>
+              )}
+            </div>
+          </div>
+        </article>
+      ))
+    }
+  </div>
+</Section>

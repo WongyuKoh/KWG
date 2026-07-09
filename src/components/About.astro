@@ -1,0 +1,25 @@
+---
+// ============================================================
+// About — 자기소개 섹션
+// ============================================================
+// 문단 내용은 src/data/about.ts에서 가져옵니다(언어별 문자열 배열).
+// 배열 원소 하나가 <p> 하나가 되므로, 문단을 늘리려면 데이터에 추가만 하면 됩니다.
+
+import Section from "./Section.astro"; // 공통 섹션 틀 (라벨+제목+슬롯)
+import { t, type Lang } from "../i18n/ui"; // 섹션 제목 문구 조회용
+import { about } from "../data/about"; // 실제 자기소개 문단 데이터
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+---
+
+<!-- Section의 slot으로 아래 <div>가 들어감. 제목들은 i18n 사전에서 언어별로 -->
+<Section id="about" eyebrow={t(lang, "section.about.eyebrow")} title={t(lang, "section.about.title")}>
+  <!-- max-w-3xl: 문단 폭 제한(가독성) / space-y-4: 문단 사이 세로 간격 / leading-relaxed: 줄간격 여유 -->
+  <div class="max-w-3xl space-y-4 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
+    {/* about.ko 또는 about.en 배열을 순회 — 문자열 하나 = 문단(<p>) 하나 */}
+    {about[lang].map((p) => <p>{p}</p>)}
+  </div>
+</Section>

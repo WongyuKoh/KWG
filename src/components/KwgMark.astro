@@ -1,0 +1,27 @@
+---
+// ============================================================
+// KwgMark — KWG 로고 이미지 컴포넌트 (정사각)
+// ============================================================
+// 원본: brand/logo-original.png → 사이트용 축소본: public/logo-mark.png
+// 로고를 쓰는 곳마다 <img>를 반복하지 않고, 크기만 넘겨 재사용하기 위한 래퍼.
+// 사용 예: <KwgMark size={112} class="rounded-3xl" />
+
+import { withBase } from "../utils/url"; // "/KWG/logo-mark.png"로 경로 완성
+
+interface Props {
+  size?: number; // 렌더링 크기(px). 정사각이라 가로=세로 하나로 충분
+  class?: string; // 호출하는 쪽에서 추가 스타일(둥근 모서리 등)을 덧입힐 통로
+}
+// "class"는 JS 예약어라 변수명으로 못 씀 → className으로 이름을 바꿔서 받음
+const { size = 40, class: className } = Astro.props;
+---
+
+<!-- width/height를 HTML 속성으로 명시: 이미지 로드 전에 자리를 확보해
+     로딩 중 화면이 밀리는 현상(레이아웃 시프트)을 방지 -->
+<img
+  src={withBase("logo-mark.png")}
+  width={size}
+  height={size}
+  alt="KWG 로고"
+  class={className}
+/>

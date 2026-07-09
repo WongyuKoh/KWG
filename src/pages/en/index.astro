@@ -1,0 +1,19 @@
+---
+// ============================================================
+// 영어 페이지 — "/en/" 주소 담당
+// ============================================================
+// index.astro(한국어)와 완전히 같은 구조이며 lang 값만 "en"입니다.
+// 언어별 문구는 두 곳에서 옵니다:
+//   · UI 문구(버튼, 섹션 제목) → src/i18n/ui.ts
+//   · 콘텐츠(경력, 프로젝트 등) → src/data/*.ts 의 { ko, en } 필드
+import Base from "../../layouts/Base.astro";
+import PageContent from "../../components/PageContent.astro";
+import { profile } from "../../data/profile";
+
+const lang = "en" as const;
+const title = `${profile.name[lang]} · ${profile.role[lang]}`;
+---
+
+<Base lang={lang} title={title} description={profile.tagline[lang]}>
+  <PageContent lang={lang} />
+</Base>

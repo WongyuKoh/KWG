@@ -1,0 +1,25 @@
+---
+// ============================================================
+// Footer — 페이지 맨 아래 저작권 표시
+// ============================================================
+import { t, type Lang } from "../i18n/ui"; // "Built with..." 문구 조회
+import { profile } from "../data/profile"; // 이름 표시용
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const year = "2026"; // 연도 — 필요 시 갱신 (빌드 시점에 박제되는 정적 값)
+---
+
+<!-- border-t: 위쪽 구분선으로 본문과 분리 -->
+<footer class="border-t border-slate-200 py-10 dark:border-slate-800">
+  <div class="container-cv flex flex-col items-center gap-2 text-center">
+    <!-- © 연도 + 이름 -->
+    <p class="text-sm font-medium text-slate-600 dark:text-slate-300">
+      © {year} {profile.name[lang]}
+    </p>
+    <!-- 제작 스택 크레딧 (아주 연한 글씨) -->
+    <p class="text-xs text-slate-400 dark:text-slate-500">{t(lang, "footer.built")}</p>
+  </div>
+</footer>

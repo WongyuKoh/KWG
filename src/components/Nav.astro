@@ -1,0 +1,130 @@
+---
+// ============================================================
+// Nav — 화면 상단에 고정되는 내비게이션 바
+// ============================================================
+// 구성: [로고 워드마크] [섹션 링크(데스크톱)] [언어 토글 | 다크모드 토글 | 모바일 메뉴]
+// - 섹션 링크는 #anchor 방식: 같은 페이지 안에서 부드럽게 스크롤
+//   (global.css의 scroll-behavior: smooth가 처리)
+// - 언어 토글은 Astro i18n 헬퍼로 반대 언어의 URL을 계산해 이동
+
+// Astro 내장 i18n 헬퍼 — 언어 코드를 주면 그 언어 페이지의 URL을 계산해 반환
+//   getRelativeLocaleUrl("ko") → "/KWG/",  getRelativeLocaleUrl("en") → "/KWG/en/"
+//   (astro.config.mjs의 base와 i18n 설정을 자동 반영)
+import { getRelativeLocaleUrl } from "astro:i18n";
+// 다크모드 전환 버튼 — React 아일랜드(브라우저에서 JS로 동작하는 유일한 부품 중 하나)
+import ThemeToggle from "./react/ThemeToggle.tsx";
+// t: 문구 사전 조회 함수 / Lang: "ko" | "en" 타입
+import { t, type Lang } from "../i18n/ui";
+// public/ 파일 경로 앞에 배포 하위경로(/KWG)를 붙여주는 헬퍼
+import { withBase } from "../utils/url";
+
+// 이 컴포넌트가 받는 입력(props): 페이지 언어 하나
+interface Props {
+  lang: Lang;
+}
+// Astro.props = 부모가 <Nav lang="ko" /> 처럼 넘긴 값들이 담긴 객체 (구조분해로 꺼냄)
+const { lang } = Astro.props;
+
+// 지금 언어의 반대 언어와 그 URL (ko면 /en/, en이면 /)
+const otherLang: Lang = lang === "ko" ? "en" : "ko"; // 삼항연산자: 조건 ? 참일때 : 거짓일때
+const otherUrl = getRelativeLocaleUrl(otherLang); // 언어 토글 버튼이 이동할 주소
+const homeUrl = getRelativeLocaleUrl(lang); // 로고 클릭 시 이동할 "현재 언어의 홈"
+
+// 내비게이션에 노출할 섹션 목록 — 라벨은 i18n 사전(ui.ts)에서 언어별로 조회
+// href의 "#about" 등은 각 Section 컴포넌트에 새겨진 id와 짝을 이룸 (클릭 → 해당 위치로 스크롤)
+const links = [
+  { href: "#about", label: t(lang, "nav.about") },
+  { href: "#skills", label: t(lang, "nav.skills") },
+  { href: "#experience", label: t(lang, "nav.experience") },
+  { href: "#projects", label: t(lang, "nav.projects") },
+  { href: "#achievements", label: t(lang, "nav.achievements") },
+  { href: "#contact", label: t(lang, "nav.contact") },
+];
+---
+
+<!--
+  헤더 클래스 해설:
+  fixed inset-x-0 top-0  스크롤과 무관하게 화면 최상단에 고정 (좌우 꽉 채움)
+  z-50                   다른 요소들 위에 겹쳐 보이도록 쌓임 순서를 높게
+  bg-white/80 + backdrop-blur-md  반투명 배경 + 뒤에 비치는 내용을 흐리게 (유리 효과)
+  dark:...               다크모드일 때의 색 대응
+-->
+<header
+  class="fixed inset-x-0 top-0 z-50 border-b border-slate-200/60 bg-white/80 backdrop-blur-md dark:border-slate-800/60 dark:bg-slate-950/80"
+>
+  <!-- container-cv: 내용 폭을 페이지 본문과 동일하게(최대 1024px, 가운데 정렬) / h-16: 높이 4rem -->
+  <nav class="container-cv flex h-16 items-center justify-between gap-4">
+    <!-- 로고: 클릭하면 현재 언어의 홈으로. aria-label은 스크린리더가 읽을 이름 -->
+    <a href={homeUrl} class="flex items-center" aria-label="KWG — home">
+      <!-- h-8 w-auto: 높이 32px로 고정하고 폭은 비율대로 자동 -->
+      <img src={withBase("logo-wordmark.png")} alt="KWG" class="h-8 w-auto rounded-md" />
+    </a>
+
+    <!-- 데스크톱용 섹션 링크 목록. hidden md:flex = 기본(모바일)은 숨기고 md(768px)↑에서만 표시 -->
+    <ul class="hidden items-center gap-1 md:flex">
+      {
+        /* links 배열을 순회하며 <li>를 하나씩 생성 — 데이터가 늘면 메뉴도 자동으로 늘어남 */
+        links.map((l) => (
+          <li>
+            <a
+              href={l.href}
+              class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+            >
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <!-- 우측 컨트롤 묶음: 언어 토글 / 다크모드 토글 / (모바일에서만) 햄버거 메뉴 -->
+    <div class="flex items-center gap-1">
+      <!-- 언어 토글: 반대 언어 페이지로 가는 평범한 링크. 표시 텍스트는 "EN"/"KO" -->
+      <a
+        href={otherUrl}
+        class="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-mint-500 hover:text-mint-700 dark:border-slate-700 dark:text-slate-300 dark:hover:border-mint-400 dark:hover:text-mint-400"
+        aria-label="Switch language"
+      >
+        {otherLang.toUpperCase()}
+      </a>
+      <!--
+        client:load — Astro는 기본적으로 JS 없는 정적 HTML을 만듭니다.
+        이 지시어를 붙인 컴포넌트만 브라우저에서 React로 동작합니다("아일랜드").
+      -->
+      <ThemeToggle client:load label={t(lang, "theme.toggle")} />
+
+      <!-- 모바일 햄버거 메뉴 — <details>/<summary> 표준 태그라 JS 없이 열리고 닫힘 -->
+      <!-- relative: 아래 드롭다운(absolute)의 기준점 / md:hidden: 데스크톱에선 숨김 -->
+      <details class="relative md:hidden">
+        <!-- summary = 클릭해서 여닫는 손잡이. list-none으로 기본 ▶ 마커 제거 -->
+        <summary
+          class="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+          aria-label="Menu"
+        >
+          <!-- 햄버거 아이콘: 가로줄 3개를 SVG path로 직접 그림 (M3 6h18 = (3,6)에서 오른쪽으로 18만큼 선) -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </summary>
+        <!-- 펼쳐지는 드롭다운 패널. absolute right-0: 버튼 기준 오른쪽 정렬로 떠 있음 -->
+        <ul
+          class="absolute right-0 mt-2 w-44 rounded-xl border border-slate-200 bg-white p-2 shadow-lg dark:border-slate-800 dark:bg-slate-900"
+        >
+          {
+            /* 데스크톱과 같은 links 배열 재사용 — 메뉴 항목이 두 곳에서 자동 동기화됨 */
+            links.map((l) => (
+              <li>
+                <a
+                  href={l.href}
+                  class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                >
+                  {l.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </details>
+    </div>
+  </nav>
+</header>

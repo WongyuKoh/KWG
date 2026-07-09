@@ -1,0 +1,56 @@
+/* Tailwind 전체 로드 — 이 한 줄로 모든 유틸리티 클래스(flex, text-sm 등)가 사용 가능해짐 */
+@import "tailwindcss";
+
+/* class 기반 다크모드 (html.dark)
+   기본 Tailwind는 OS 설정(prefers-color-scheme)을 따르는데, 우리는 버튼 토글이 필요하므로
+   "dark: 접두사는 <html class='dark'> 아래에서만 켜져라"로 재정의.
+   선택자 해석: .dark 자신(&:where(.dark)) 또는 .dark의 자손(.dark *)일 때 적용 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* @theme: Tailwind v4의 디자인 토큰 정의 구역.
+   여기에 --color-mint-400 을 선언하면 bg-mint-400, text-mint-400, border-mint-400 …
+   같은 유틸리티 클래스가 자동으로 생성됨 (별도 설정 파일 불필요) */
+@theme {
+  /* 사이트 기본 글꼴 우선순위: Pretendard(설치돼 있으면) → 각 OS 시스템 폰트 → 한글 폰트 폴백 */
+  --font-sans:
+    "Pretendard", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+
+  /* 브랜드 민트 — 로고(brand/logo-original.png)에서 추출한 #49ffce 기준 램프
+     50=가장 연함(배경용) … 400=로고 원색 … 800=가장 진함(밝은 배경 위 글자용)
+     숫자가 커질수록 진해지는 Tailwind 관례를 따름 */
+  --color-mint-50: #eafff9;
+  --color-mint-100: #c9ffef;
+  --color-mint-200: #97ffe3;
+  --color-mint-300: #6fffd8;
+  --color-mint-400: #49ffce; /* ← 로고에서 추출한 원색 */
+  --color-mint-500: #21e6b2;
+  --color-mint-600: #0fbf92;
+  --color-mint-700: #0b9573; /* 라이트 모드에서 글자색으로 쓰기 좋은 대비 */
+  --color-mint-800: #0a7157;
+}
+
+html {
+  /* 앵커(#experience 등) 이동 시 순간이동 대신 부드럽게 스크롤 */
+  scroll-behavior: smooth;
+  /* 앵커 도착 지점을 5rem 아래로 보정 — 고정 내비(4rem)+여유에 제목이 가려지지 않게 */
+  scroll-padding-top: 5rem;
+}
+
+body {
+  font-family: var(--font-sans); /* 위에서 정의한 글꼴 스택 적용 */
+  /* @apply: 유틸리티 클래스를 CSS 규칙 안에서 재사용하는 Tailwind 문법
+     라이트: 흰 배경+진회색 글자 / 다크: 거의 검정 배경+연회색 글자 / antialiased: 글자 렌더링 부드럽게 */
+  @apply bg-white text-slate-700 antialiased dark:bg-slate-950 dark:text-slate-300;
+}
+
+/* 마우스로 텍스트를 드래그 선택했을 때의 하이라이트 색 — 브랜드 민트 30% 투명도 */
+::selection {
+  @apply bg-mint-400/30;
+}
+
+/* 재사용 유틸: 페이지 공통 컨테이너
+   mx-auto 가운데 정렬 / max-w-5xl 최대 폭 1024px / px-6 좌우 24px 여백(모바일에서 가장자리 보호) */
+.container-cv {
+  @apply mx-auto w-full max-w-5xl px-6;
+}

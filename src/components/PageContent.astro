@@ -1,0 +1,41 @@
+---
+// ============================================================
+// PageContent — 페이지 전체 조립도
+// ============================================================
+// 한국어(/)와 영어(/en/) 페이지가 이 컴포넌트 하나를 공유합니다.
+// 섹션 순서를 바꾸거나 섹션을 추가/제거하려면 아래 <main> 안의
+// 나열 순서만 수정하면 됩니다. lang을 받아 모든 섹션에 그대로 넘깁니다.
+
+import type { Lang } from "../i18n/ui"; // "ko" | "en" 타입만 가져옴 (type-only import)
+import Nav from "./Nav.astro"; // 상단 고정 내비게이션
+import Hero from "./Hero.astro"; // 첫 화면 (로고·이름·CTA)
+import About from "./About.astro"; // 자기소개
+import Skills from "./Skills.astro"; // 기술 스택
+import Experience from "./Experience.astro"; // 경력 타임라인
+import Projects from "./Projects.astro"; // 프로젝트 카드
+import Achievements from "./Achievements.astro"; // 수상·자격
+import Education from "./Education.astro"; // 학력
+import Contact from "./Contact.astro"; // 연락처
+import Footer from "./Footer.astro"; // 저작권 푸터
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+---
+
+<!-- 내비는 fixed(공중에 뜸)라 문서 흐름 밖 — 그래서 main보다 먼저 두든 나중에 두든 화면상 위치는 동일 -->
+<Nav lang={lang} />
+<!-- <main>: "이 문서의 핵심 내용" 표시 — 검색엔진·스크린리더가 본문 시작점으로 인식 -->
+<main>
+  <!-- ↓ 이 순서가 곧 화면의 위→아래 순서. 줄을 옮기면 섹션 순서가 바뀜 -->
+  <Hero lang={lang} />
+  <About lang={lang} />
+  <Skills lang={lang} />
+  <Experience lang={lang} />
+  <Projects lang={lang} />
+  <Achievements lang={lang} />
+  <Education lang={lang} />
+  <Contact lang={lang} />
+</main>
+<Footer lang={lang} />

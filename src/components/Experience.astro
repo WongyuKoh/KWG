@@ -1,0 +1,73 @@
+---
+// ============================================================
+// Experience — 개발 경력 섹션 (세로 타임라인)
+// ============================================================
+// src/data/experience.ts의 experiences 배열을 위에서부터 그립니다(최신순 권장).
+// 왼쪽 세로선(border-l) + 항목마다 민트 점으로 타임라인을 표현하고,
+// 항목 안은 직무·회사 → 기간 → 성과 불릿 → 기술 칩 순서입니다.
+
+import Section from "./Section.astro"; // 공통 섹션 틀
+import { t, type Lang } from "../i18n/ui"; // 제목 문구 조회
+import { experiences } from "../data/experience"; // 경력 데이터
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+---
+
+<Section id="experience" eyebrow={t(lang, "section.experience.eyebrow")} title={t(lang, "section.experience.title")}>
+  <!--
+    타임라인 몸통:
+    border-l  왼쪽에 1px 세로선(타임라인 축)
+    pl-8      선과 내용 사이 32px 간격
+    relative  자식의 absolute(점) 위치 기준
+  -->
+  <div class="relative border-l border-slate-200 pl-8 dark:border-slate-800">
+    {
+      /* 경력 항목 하나당 블록 하나. last:pb-0 = 마지막 항목만 아래 여백 제거 */
+      experiences.map((exp) => (
+        <div class="relative pb-12 last:pb-0">
+          {/* 타임라인 점: 바깥 흰 링(테두리 민트) + 안쪽 민트 원 2겹 구조 */}
+          {/* -left-[41px]: pl-8(32px) + 선(1px) + 점 폭 절반(8px) = 점의 중심을 선 위에 정확히 올림 */}
+          <span class="absolute -left-[41px] top-1.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-mint-500 bg-white dark:border-mint-400 dark:bg-slate-950">
+            <span class="h-1.5 w-1.5 rounded-full bg-mint-500 dark:bg-mint-400" />
+          </span>
+
+          {/* 첫 줄: 직무·회사(왼쪽)와 기간(오른쪽)을 양 끝으로.
+              items-baseline: 글자 크기가 달라도 밑선을 맞춤 / flex-wrap: 좁으면 줄바꿈 */}
+          <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+              {exp.role[lang]}
+              {/* 회사명은 직무보다 연하게 — 위계 표현 */}
+              <span class="font-medium text-slate-500 dark:text-slate-400"> · {exp.company[lang]}</span>
+            </h3>
+            <span class="text-sm font-medium text-slate-500 dark:text-slate-400">{exp.period}</span>
+          </div>
+          {/* 근무 지역 */}
+          <p class="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{exp.location[lang]}</p>
+
+          {/* 성과 불릿 목록. space-y-2: 불릿 간 세로 간격 */}
+          <ul class="mt-4 space-y-2">
+            {exp.highlights[lang].map((h) => (
+              <li class="flex gap-2 text-slate-600 dark:text-slate-300">
+                {/* 커스텀 불릿(민트 원). shrink-0: 텍스트가 길어도 점이 찌그러지지 않게 */}
+                <span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-mint-500 dark:bg-mint-400" />
+                <span>{h}</span>
+              </li>
+            ))}
+          </ul>
+
+          {/* 사용 기술 칩 — 회색으로 톤 다운(민트는 Skills 칩과 성과 불릿에 양보) */}
+          <ul class="mt-4 flex flex-wrap gap-2">
+            {exp.tech.map((tech) => (
+              <li class="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                {tech}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
+</Section>

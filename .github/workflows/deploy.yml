@@ -1,0 +1,48 @@
+# ============================================================
+# GitHub Actions 워크플로우 — GitHub Pages 자동 배포
+# ============================================================
+# main 브랜치에 push할 때마다 GitHub 서버에서:
+#   ① 코드 체크아웃 → ② npm 설치 + astro build → ③ dist/를 Pages에 게시
+# 를 자동 실행합니다. 로컬에서 빌드해서 올릴 필요가 없습니다.
+# 사전 조건(1회): 저장소 Settings → Pages → Source를 "GitHub Actions"로 설정.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main] # main에 push되면 실행
+  workflow_dispatch: # GitHub 웹의 Actions 탭에서 수동 실행 버튼도 제공
+
+# 이 워크플로우에게 부여하는 권한 (최소 권한 원칙)
+permissions:
+  contents: read # 코드를 읽을 권한 (체크아웃용)
+  pages: write # GitHub Pages에 게시할 권한
+  id-token: write # 배포 시 신원 증명(OIDC 토큰) 발급 권한 — deploy-pages가 요구
+
+# 동시 배포 방지: push가 연달아 오면 같은 "pages" 그룹으로 묶어 한 번에 하나만 배포
+concurrency:
+  group: pages
+  cancel-in-progress: false # 진행 중인 배포는 취소하지 않고 끝까지 (반쯤 배포된 상태 방지)
+
+jobs:
+  # ── 1단계: 빌드 ──────────────────────────────────────────
+  build:
+    runs-on: ubuntu-latest # GitHub이 제공하는 리눅스 가상머신에서 실행
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # 저장소 코드를 가상머신으로 내려받기
+      - name: Build with Astro
+        uses: withastro/action@v3
+        # withastro/action이 의존성 설치·빌드·아티팩트 업로드를 자동 처리합니다.
+        # (내부적으로: Node 설치 → npm ci → astro build → dist/를 Pages용 아티팩트로 업로드)
+
+  # ── 2단계: 게시 ──────────────────────────────────────────
+  deploy:
+    needs: build # build 잡이 성공해야만 실행 (실패한 빌드는 배포되지 않음)
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages # 저장소의 Pages 배포 환경과 연결
+      url: ${{ steps.deployment.outputs.page_url }} # 배포 완료 후 Actions 화면에 사이트 URL 표시
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4 # 1단계에서 올린 아티팩트를 실제 Pages에 게시

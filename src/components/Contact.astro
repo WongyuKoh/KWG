@@ -1,0 +1,107 @@
+---
+// ============================================================
+// Contact — 연락처 섹션 (페이지 마지막)
+// ============================================================
+// profile.ts의 이메일/GitHub/Instagram/LinkedIn/블로그를 카드 링크로 나열합니다.
+// show: 값이 비어 있으면(예: linkedin: "") 그 카드는 자동으로 숨겨지므로
+// profile.ts에 값만 채우면 카드가 생깁니다.
+
+import Section from "./Section.astro"; // 공통 섹션 틀
+import { t, type Lang } from "../i18n/ui"; // 문구 조회
+import { profile } from "../data/profile"; // 연락처 데이터
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+
+// ── 아이콘 정의 ─────────────────────────────────────────────
+// 24×24 뷰박스 기준 SVG "내부 마크업"만 문자열로 보관하고,
+// 템플릿에서 공용 <svg> 틀에 set:html로 끼워 넣습니다.
+// type: "stroke" = 선으로 그리는 아이콘 / "fill" = 면으로 채우는 로고(GitHub·LinkedIn 공식형)
+const icons = {
+  email: {
+    type: "stroke",
+    body: `<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>`,
+  },
+  github: {
+    type: "fill",
+    body: `<path d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.3-1.8-1.3-1.8-1.1-.7 0-.7 0-.7 1.2 0 1.9 1.2 1.9 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2 0-.4-.5-1.6.2-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17 4.7 18 5 18 5c.7 1.6.2 2.8.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .5Z"/>`,
+  },
+  instagram: {
+    type: "stroke",
+    body: `<rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>`,
+  },
+  linkedin: {
+    type: "fill",
+    body: `<path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z"/>`,
+  },
+  blog: {
+    // Tistory 공식 심볼 — 원 5개가 "T"자를 이루는 도트 마크 (simple-icons 제공 패스)
+    type: "fill",
+    body: `<path d="M0 3a3 3 0 1 0 6 0 3 3 0 0 0-6 0m9 18a3 3 0 1 0 6 0 3 3 0 0 0-6 0m0-9a3 3 0 1 0 6 0 3 3 0 0 0-6 0m0-9a3 3 0 1 0 6 0 3 3 0 0 0-6 0m9 0a3 3 0 1 0 6 0 3 3 0 0 0-6 0"/>`,
+  },
+} as const;
+
+// 노출할 연락 수단 목록.
+// profile의 각 연락처 필드는 { show: 표시용 텍스트, link: 실제 주소 } 객체(S9k 타입)이며
+// 선택 필드(?)라서 아예 없을 수도 있습니다. 그래서:
+//   profile.email?.link  → 옵셔널 체이닝: email이 없으면 에러 대신 undefined
+//   ?? ""                → 널 병합: undefined면 빈 문자열로 대체 (타입을 항상 string으로 유지)
+//   show: !!profile.email → 필드(객체)의 존재 여부로 카드 노출 결정
+// icon: 위 icons 사전에서 해당 항목의 아이콘을 연결
+const socials = [
+  { label: "Email", href: `mailto:${profile.email?.link ?? ""}`, value: profile.email?.show ?? "", show: !!profile.email, icon: icons.email },
+  { label: "GitHub", href: profile.github?.link ?? "", value: profile.github?.show ?? "", show: !!profile.github, icon: icons.github },
+  { label: "Instagram", href: profile.instagram?.link ?? "", value: profile.instagram?.show ?? "", show: !!profile.instagram, icon: icons.instagram },
+  { label: "LinkedIn", href: profile.linkedin?.link ?? "", value: profile.linkedin?.show ?? "", show: !!profile.linkedin, icon: icons.linkedin },
+  { label: "Blog", href: profile.blog?.link ?? "", value: profile.blog?.show ?? "", show: !!profile.blog, icon: icons.blog },
+];
+---
+
+<Section id="contact" eyebrow={t(lang, "section.contact.eyebrow")} title={t(lang, "section.contact.title")}>
+  <!-- 인사말 한 줄 -->
+  <p class="max-w-2xl text-lg text-slate-600 dark:text-slate-300">{t(lang, "contact.desc")}</p>
+
+  <div class="mt-8 grid gap-3 sm:grid-cols-2">
+    {
+      /* filter(s => s.show): 값이 채워진 항목만 남김 → map으로 카드 생성 */
+      socials.filter((s) => s.show).map((s) => (
+        <a
+          href={s.href}
+          target={s.label === "Email" ? undefined : "_blank"}
+          rel="noopener noreferrer"
+          class="group flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-4 transition hover:border-mint-500 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:hover:border-mint-400"
+        >
+          {/* 왼쪽 묶음: [아이콘 박스] + [라벨/값 텍스트] 를 가로로 나란히 */}
+          <span class="flex items-center gap-3">
+            {/* 아이콘 박스 — 카드에 호버하면(group-hover) 민트 톤으로 물듦 */}
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition group-hover:bg-mint-50 group-hover:text-mint-700 dark:bg-slate-800 dark:text-slate-300 dark:group-hover:bg-mint-400/10 dark:group-hover:text-mint-300">
+              {/* 공용 svg 틀: type에 따라 선(stroke) 또는 면(fill)으로 그리고,
+                  set:html로 위에서 정의한 아이콘 내부 마크업을 주입 */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill={s.icon.type === "fill" ? "currentColor" : "none"}
+                stroke={s.icon.type === "stroke" ? "currentColor" : "none"}
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                set:html={s.icon.body}
+              />
+            </span>
+            <span>
+              {/* 위: 종류 라벨(Email 등), 아래: 실제 값(주소) */}
+              <span class="block text-sm font-semibold text-slate-500 dark:text-slate-400">{s.label}</span>
+              <span class="mt-0.5 block font-medium break-all text-slate-900 dark:text-white">{s.value}</span>
+            </span>
+          </span>
+          {/* 화살표: 카드 호버 시 민트색 + 오른쪽으로 살짝 이동 → "눌러보세요" 신호 */}
+          <span class="text-slate-400 transition group-hover:translate-x-1 group-hover:text-mint-600 dark:group-hover:text-mint-400">→</span>
+        </a>
+      ))
+    }
+  </div>
+</Section>
